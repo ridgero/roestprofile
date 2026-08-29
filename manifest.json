@@ -1,0 +1,13 @@
+{
+  "name": "Gene Café CBR-101 Röstprofile",
+  "short_name": "Röstprofile",
+  "description": "Röstprofile, Timer und Drop-Zeitplaner für den Gene Café CBR-101",
+  "start_url": "./roestprofile-tool-v7.html",
+  "display": "standalone",
+  "background_color": "#1b1310",
+  "theme_color": "#1b1310",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
