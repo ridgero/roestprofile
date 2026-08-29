@@ -1,8 +1,8 @@
 // Minimaler Service Worker: cacht die App-Shell, damit das Tool
 // auch ohne Netz startet (z.B. wenn die Röstküche kein WLAN hat).
-const CACHE_NAME = 'roestprofile-v7';
+const CACHE_NAME = 'roestprofile-v9';
 const ASSETS = [
-  './roestprofile-tool-v7.html',
+  './roestprofile-tool-v9.html',
   './manifest.json',
   './icon-192.png',
   './icon-512.png'

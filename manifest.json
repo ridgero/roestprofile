@@ -1,13 +1,21 @@
 {
-  "name": "Gene Café CBR-101 Röstprofile",
+  "name": "Röstprofile · Heimröster-Logbuch",
   "short_name": "Röstprofile",
-  "description": "Röstprofile, Timer und Drop-Zeitplaner für den Gene Café CBR-101",
-  "start_url": "./roestprofile-tool-v7.html",
+  "description": "Röstprofile, Timer und Drop-Zeitplaner für mehrere Heimröster",
+  "start_url": "./roestprofile-tool-v9.html",
   "display": "standalone",
   "background_color": "#1b1310",
   "theme_color": "#1b1310",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
   ]
 }

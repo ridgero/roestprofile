@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Röstprofile · Heimröster-Logbuch v9</title>
+<meta name="theme-color" content="#1b1310">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Röstprofile">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #1b1310;
+    --bg-glow: #26190f;
+    --bg-grid: #241a15;
+    --surface: #251a14;
+    --surface-2: #2e211a;
+    --line: #4a382c;
+    --cream: #f1e6d6;
+    --muted: #ab9481;
+    --copper: #c8834e;
+    --amber: #e8ac5c;
+    --crack: #d9603a;
+  }
+  :root[data-theme="light"]{
+    --bg: #faf6f0;
+    --bg-glow: #faf6f0;
+    --surface: #ffffff;
+    --surface-2: #f1e9df;
+    --line: #ddd0c0;
+    --cream: #241a14;
+    --muted: #7d6a5a;
+    --copper: #a85f2e;
+    --amber: #b9752b;
+    --crack: #c14a2a;
+  }
+  :root[data-theme="readable"]{
+    --bg: #ffffff;
+    --bg-glow: #ffffff;
+    --surface: #ffffff;
+    --surface-2: #f0f0f0;
+    --line: #2b2b2b;
+    --cream: #101010;
+    --muted: #3d3d3d;
+    --copper: #7a3f14;
+    --amber: #7a3f14;
+    --crack: #9c2c14;
+  }
+  :root[data-theme="readable"] body{ font-size:18px; line-height:1.65; }
+  :root[data-theme="readable"] h1{ font-size:clamp(30px, 6vw, 42px); }
+  :root[data-theme="readable"] .sub{ font-size:16px; }
+  :root[data-theme="readable"] .card{ border-width:2px; padding:26px; }
+  :root[data-theme="readable"] .card .ideal{ font-style:normal; font-size:15px; }
+  :root[data-theme="readable"] th, :root[data-theme="readable"] td{ font-size:16px; padding:12px 8px; }
+  :root[data-theme="readable"] .stat .v{ font-size:25px; }
+  :root[data-theme="readable"] .btn{ font-size:14px; padding:14px 20px; }
+  :root[data-theme="readable"] select{ font-size:20px; border-width:2px; }
+  :root[data-theme="readable"] .timer-display{ font-size:52px; }
+  :root[data-theme="readable"] .phase-temp{ font-size:28px; }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse at top, var(--bg-glow) 0%, var(--bg) 60%);
+    color:var(--cream);
+    font-family:'IBM Plex Sans', sans-serif;
+    min-height:100vh;
+    padding:32px 16px 60px;
+    transition:background .2s ease, color .2s ease;
+  }
+  .wrap{ max-width:760px; margin:0 auto; }
+
+  .theme-switch{ display:flex; gap:8px; margin-bottom:22px; }
+
+  header{ margin-bottom:28px; }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--copper);
+    margin:0 0 8px;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:clamp(28px, 5vw, 40px);
+    margin:0;
+    line-height:1.1;
+    color:var(--cream);
+  }
+  .sub{ color:var(--muted); margin:10px 0 0; font-size:15px; max-width:52ch; }
+
+  .picker{
+    margin:28px 0 20px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  label{ font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-family:'IBM Plex Mono', monospace; }
+  select{
+    appearance:none;
+    background:var(--surface) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="9" viewBox="0 0 14 9"><path d="M1 1l6 6 6-6" stroke="%23e8ac5c" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat right 18px center;
+    border:1px solid var(--line);
+    color:var(--cream);
+    font-family:'Fraunces', serif;
+    font-size:19px;
+    font-weight:500;
+    padding:14px 44px 14px 18px;
+    border-radius:10px;
+    cursor:pointer;
+  }
+  select:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:24px;
+    margin-bottom:18px;
+  }
+  .card h2{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:22px;
+    margin:0 0 4px;
+    color:var(--cream);
+  }
+  .card .ideal{
+    color:var(--muted);
+    font-size:14px;
+    font-style:italic;
+    margin:0 0 18px;
+    padding-bottom:16px;
+    border-bottom:1px dashed var(--line);
+  }
+
+  .stat-row{
+    display:flex;
+    gap:24px;
+    flex-wrap:wrap;
+    margin-bottom:4px;
+  }
+  .stat{ min-width:110px; }
+  .stat .k{ font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+  .stat .v{ font-family:'Fraunces', serif; font-size:22px; color:var(--amber); font-weight:600; margin-top:2px; }
+
+  .dev-input-wrap{ display:flex; align-items:baseline; gap:4px; }
+  .dev-input{
+    font-family:'Fraunces', serif;
+    font-size:22px;
+    font-weight:600;
+    color:var(--amber);
+    background:transparent;
+    border:none;
+    border-bottom:1px dashed var(--copper);
+    width:3.2em;
+    padding:0 0 2px;
+  }
+  .dev-input:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
+  .dev-input::-webkit-inner-spin-button{ opacity:0.6; }
+  .dev-suffix{ font-family:'Fraunces', serif; font-size:22px; color:var(--amber); font-weight:600; }
+  .dev-hint{ font-size:11px; color:var(--muted); margin-top:4px; font-family:'IBM Plex Mono', monospace; }
+
+  tr.fc-row.hl td{ color:var(--amber); }
+
+  .chart-card{ padding:20px 20px 10px; }
+  .chart-title{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--muted);
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    margin:0 0 12px;
+  }
+  svg.chart{ width:100%; height:auto; display:block; }
+  .grid-line{ stroke:var(--line); stroke-width:1; }
+  .curve{ fill:none; stroke:var(--amber); stroke-width:2.5; stroke-linejoin:round; stroke-linecap:round; }
+  .curve-fill{ fill:url(#curveGrad); opacity:.5; }
+  .pt{ fill:var(--bg); stroke:var(--amber); stroke-width:2.5; }
+  .pt.crack{ fill:var(--crack); stroke:var(--crack); }
+  .pt-label{ font-family:'IBM Plex Mono', monospace; font-size:11px; fill:var(--cream); }
+  .pt-temp{ font-family:'Fraunces', serif; font-size:13px; font-weight:600; fill:var(--amber); }
+  .pt-temp.crack{ fill:var(--crack); }
+  .axis-label{ font-family:'IBM Plex Mono', monospace; font-size:10px; fill:var(--muted); }
+
+  table{ width:100%; border-collapse:collapse; margin-top:6px; }
+  th, td{
+    text-align:left;
+    padding:10px 8px;
+    font-size:14px;
+    border-bottom:1px solid var(--line);
+  }
+  th{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--muted);
+    font-weight:500;
+  }
+  td.temp{ font-family:'IBM Plex Mono', monospace; color:var(--amber); font-weight:500; white-space:nowrap; }
+  tr:last-child td{ border-bottom:none; }
+  tr.crack-row td.temp{ color:var(--crack); }
+
+  .extra{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(150px,1fr));
+    gap:14px;
+    margin-top:4px;
+  }
+  .extra .k{ font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
+  .extra .v{ font-size:14px; color:var(--cream); }
+  .extra .v.empty{ color:var(--muted); font-style:italic; }
+
+  footer{
+    margin-top:24px;
+    color:var(--muted);
+    font-size:12px;
+    text-align:center;
+  }
+  footer a{ color:var(--copper); }
+
+  /* ----- Timer ----- */
+  .timer-display{
+    font-family:'Fraunces', serif;
+    font-size:48px;
+    font-weight:600;
+    color:var(--amber);
+    text-align:center;
+    letter-spacing:.02em;
+    margin:4px 0 16px;
+  }
+  .timer-fc-mark{
+    text-align:center;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--crack);
+    min-height:16px;
+    margin-bottom:6px;
+  }
+  .drop-calc{
+    text-align:center;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--muted);
+    min-height:16px;
+    margin-bottom:14px;
+  }
+  .drop-calc .num{ color:var(--amber); font-weight:500; }
+  .drop-calc.due .num{ color:var(--crack); }
+  .timer-btns{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+  .btn{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    color:var(--cream);
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:12px 18px;
+    cursor:pointer;
+    min-height:44px;
+  }
+  .btn:hover{ border-color:var(--copper); }
+  .btn:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
+  .btn.primary{ background:var(--copper); border-color:var(--copper); color:#1b1310; font-weight:600; }
+  .btn.crack{ background:var(--crack); border-color:var(--crack); color:#1b1310; font-weight:600; }
+  .btn.drop{ background:var(--amber); border-color:var(--amber); color:#1b1310; font-weight:600; }
+  .btn.ghost{ background:transparent; }
+  .btn:disabled{ opacity:.4; cursor:default; }
+
+  /* ----- Phasen-Tracker ----- */
+  .phase-tracker{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:16px;
+    margin:18px 0 4px;
+    padding-top:16px;
+    border-top:1px dashed var(--line);
+  }
+  .phase-info{ text-align:center; min-width:140px; }
+  .phase-label{ font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+  .phase-temp{ font-family:'Fraunces', serif; font-size:26px; font-weight:600; color:var(--amber); margin-top:2px; }
+  .phase-note{ font-size:12px; color:var(--muted); margin-top:2px; }
+  .phase-btn{
+    width:38px; height:38px; border-radius:50%;
+    background:var(--surface-2); border:1px solid var(--line); color:var(--cream);
+    font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .phase-btn:hover{ border-color:var(--copper); }
+  .phase-btn:disabled{ opacity:.3; cursor:default; }
+
+  /* ----- DTR Schnellwahl ----- */
+  .dev-quick{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+  .chip{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--muted);
+    background:transparent;
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:6px 12px;
+    cursor:pointer;
+    min-height:32px;
+  }
+  .chip:hover{ color:var(--cream); border-color:var(--copper); }
+  .chip.active{ color:#1b1310; background:var(--amber); border-color:var(--amber); font-weight:600; }
+
+  tr.fc-row.hl-row td{ background:rgba(232,172,92,0.12); font-weight:600; }
+
+  /* ----- Log ----- */
+  .log-form{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom:16px; }
+  .log-form input, .log-form textarea{
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:13px;
+    color:var(--cream);
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px 12px;
+  }
+  .log-form input[type="date"]{ flex:1 1 130px; }
+  .log-form input.short{ flex:1 1 80px; }
+  .log-form textarea{ flex:1 1 100%; min-height:56px; resize:vertical; font-family:inherit; }
+  .log-entry{
+    border-top:1px solid var(--line);
+    padding:12px 0;
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    align-items:flex-start;
+  }
+  .log-entry .meta{ font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--muted); white-space:nowrap; }
+  .log-entry .note{ font-size:13px; color:var(--cream); flex:1; }
+  .log-entry button{
+    background:none; border:none; color:var(--muted); cursor:pointer; font-size:12px;
+    font-family:'IBM Plex Mono', monospace; padding:4px;
+  }
+  .log-entry button:hover{ color:var(--crack); }
+  .log-empty{ color:var(--muted); font-size:13px; font-style:italic; }
+
+  .print-btn-wrap{ text-align:center; margin:4px 0 8px; }
+
+  /* ----- Neues Rezept anlegen ----- */
+  .form-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(150px,1fr));
+    gap:14px;
+  }
+  .form-grid label{
+    display:flex; flex-direction:column; gap:6px;
+    font-size:11px; color:var(--muted);
+    font-family:'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.05em;
+  }
+  .form-grid input{
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:14px; text-transform:none; letter-spacing:normal;
+    color:var(--cream); background:var(--surface-2);
+    border:1px solid var(--line); border-radius:8px;
+    padding:10px 12px;
+  }
+  .step-row{
+    display:flex; flex-wrap:wrap; gap:8px; align-items:center;
+    margin-bottom:12px; padding-bottom:12px;
+    border-bottom:1px dashed var(--line);
+  }
+  .step-row input[type="text"], .step-row input[type="number"]{
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:13px; color:var(--cream); background:var(--surface-2);
+    border:1px solid var(--line); border-radius:6px; padding:9px 10px;
+  }
+  .step-row .step-label{ flex:1 1 150px; }
+  .step-row input[type="number"]{ flex:0 1 80px; }
+  .step-row .step-note{ flex:2 1 190px; }
+  .step-row .crack-check{
+    display:flex; align-items:center; gap:5px;
+    font-size:11px; color:var(--muted); font-family:'IBM Plex Mono', monospace;
+    white-space:nowrap;
+  }
+  .step-remove{
+    background:none; border:none; color:var(--muted);
+    cursor:pointer; font-size:15px; padding:6px;
+  }
+  .step-remove:hover{ color:var(--crack); }
+  .form-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
+
+  @media (max-width: 420px){
+    body{ padding:20px 12px 50px; }
+    .card{ padding:18px; }
+    .timer-display{ font-size:38px; }
+    th, td{ font-size:13px; padding:9px 5px; }
+  }
+
+  @media print{
+    body{ background:#fff; color:#111; padding:0; }
+    .picker, .timer-btns, .dev-quick, .log-form, .print-btn-wrap, .theme-switch, footer{ display:none !important; }
+    .card{ background:#fff; border:1px solid #ccc; break-inside:avoid; }
+    .dev-input, .dev-suffix, h1, h2{ color:#111 !important; }
+    .curve, .pt, .pt-temp{ stroke:#111 !important; fill:#111 !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Heimröster-Logbuch</p>
+    <h1>Röstprofile</h1>
+    <p class="sub">Maschine und Kaffee wählen, Rezept lesen, rösten.</p>
+  </header>
+
+  <div class="theme-switch" id="themeSwitch">
+    <button type="button" class="chip" data-theme-choice="dark">Dunkel</button>
+    <button type="button" class="chip" data-theme-choice="light">Hell</button>
+    <button type="button" class="chip" data-theme-choice="readable">Gut lesbar</button>
+  </div>
+
+  <div class="picker">
+    <label for="machineSelect">Röstmaschine</label>
+    <select id="machineSelect"></select>
+  </div>
+
+  <div class="picker">
+    <label for="coffeeSelect">Kaffee</label>
+    <select id="coffeeSelect"></select>
+  </div>
+
+  <div id="output"></div>
+
+  <div class="print-btn-wrap"><button class="btn ghost" id="printBtn">Rezept drucken</button></div>
+
+  <footer>Röstprofile für den Gene Café CBR-101 · Werte sind Richtwerte, jeder Röster tickt etwas anders.</footer>
+</div>
+
+<script>
+/* ============================================================
+   THEME-UMSCHALTER
+   ------------------------------------------------------------
+   Setzt data-theme am <html>-Element; alle Farben hängen an
+   CSS-Variablen (siehe :root-Blöcke oben), daher genügt dieser
+   einzige Attribut-Wechsel für die komplette Umfärbung.
+   ============================================================ */
+const THEME_COLORS = { dark: '#1b1310', light: '#faf6f0', readable: '#ffffff' };
+
+function applyTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme);
+  try{ localStorage.setItem('roast-theme', theme); } catch(e){}
+  document.querySelectorAll('#themeSwitch .chip').forEach(b => {
+    b.classList.toggle('active', b.dataset.themeChoice === theme);
+  });
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+  if (metaTheme) metaTheme.setAttribute('content', THEME_COLORS[theme] || THEME_COLORS.dark);
+}
+
+let savedTheme = 'dark';
+try{ savedTheme = localStorage.getItem('roast-theme') || 'dark'; } catch(e){}
+applyTheme(savedTheme);
+
+document.querySelectorAll('#themeSwitch .chip').forEach(b => {
+  b.addEventListener('click', () => applyTheme(b.dataset.themeChoice));
+});
+
+/* ============================================================
+   RÖSTMASCHINEN
+   ------------------------------------------------------------
+   Neue Maschine hinzufügen: einfach ein weiteres Objekt hier
+   einfügen. Jedes Röstprofil unten bekommt über sein "machine"-
+   Feld eine Zuordnung zu genau einer dieser IDs.
+   ============================================================ */
+const MACHINES = [
+  { id: "gene-cafe", name: "Gene Café CBR-101" },
+  { id: "aillio-bullet", name: "Aillio Bullet R1" },
+  { id: "behmor-1600", name: "Behmor 1600 Plus" },
+  { id: "hottop", name: "Hottop KN-8828B-2K+" },
+  { id: "kaldi", name: "Kaldi Wide / Motion" },
+  { id: "ikawa", name: "IKAWA Home" },
+  { id: "freshroast", name: "Fresh Roast SR540 / SR800" },
+  { id: "other", name: "Andere Maschine" }
+];
+
+/* ============================================================
+   DATENQUELLE
+   ------------------------------------------------------------
+   Alle Röstprofile leben hier als reines JSON-Array — komplett
+   getrennt von der Anzeige-Logik weiter unten. Um einen neuen
+   Kaffee hinzuzufügen, einfach ein weiteres Objekt in diese
+   Liste einfügen (Struktur wie bei den bestehenden Einträgen).
+   Jedes Profil gehört über "machine" zu genau einer Maschine
+   aus MACHINES oben.
+
+   Jeder "step" ist eine Zieltemperatur-Etappe der Röstung.
+   isCrack: true markiert den Schritt, der beim ersten Knacken
+   (First Crack) erreicht wird — wird im Diagramm/Tabelle farblich
+   hervorgehoben.
+
+   origin / processing / flavor sind optionale Zusatzinfos
+   (Herkunft, Aufbereitung, Aromen). Wo noch keine belastbaren
+   Angaben vorlagen, wurden sie bewusst leer gelassen statt
+   geraten — einfach selbst ergänzen.
+   ============================================================ */
+const COFFEES = [
+  {
+    id: "indonesien",
+    machine: "gene-cafe",
+    name: "Kaffee aus Indonesien",
+    idealFor: "Ideal zum Beispiel für Indonesien Sumatra Lintong",
+    amount: 230,
+    preheat: 200,
+    steps: [
+      { label: "Zieltemperatur 1", temp: 165, note: "bei Erreichen 1 Minute Temperatur halten" },
+      { label: "Zieltemperatur 2", temp: 245, note: "bis zum ersten Knacken", isCrack: true },
+      { label: "Zieltemperatur 3", temp: 220, note: "bis zum Schluss" }
+    ],
+    development: "19–24%",
+    origin: "", processing: "", flavor: ""
+  },
+  {
+    id: "suedamerika-hochland",
+    machine: "gene-cafe",
+    name: "Hochland Bohnen aus Südamerika",
+    idealFor: "Ideal zum Beispiel für Kolumbien Maragogype, Bio Peru Cajamarca",
+    amount: 250,
+    preheat: 200,
+    steps: [
+      { label: "Zieltemperatur 1", temp: 150, note: "6 Minuten" },
+      { label: "Zieltemperatur 2", temp: 245, note: "bis First Crack", isCrack: true },
+      { label: "Zieltemperatur 3", temp: 225, note: "bis zum Schluss" }
+    ],
+    development: "16–20%",
+    origin: "", processing: "", flavor: ""
+  },
+  {
+    id: "robusta",
+    machine: "gene-cafe",
+    name: "Robusta (Canephora) Bohnen",
+    idealFor: "Gene Röstung für Robusta (Canephora) Bohnen",
+    amount: 230,
+    preheat: 210,
+    steps: [
+      { label: "Zieltemperatur 1", temp: 248, note: "bis zum ersten Knacken", isCrack: true },
+      { label: "Zieltemperatur 2", temp: 233, note: "bis zum Schluss" }
+    ],
+    development: "21–25%",
+    origin: "", processing: "Robusta / Canephora", flavor: ""
+  },
+  {
+    id: "monsooned-malabar",
+    machine: "gene-cafe",
+    name: "Monsooned Malabar Bohnen",
+    idealFor: "Ideal zum Beispiel für Indien Monsooned Malabar, Bio Indien Monsooned Malabar AA",
+    amount: 200,
+    preheat: 200,
+    steps: [
+      { label: "Zieltemperatur 1", temp: 237, note: "bis zum ersten Knacken", isCrack: true },
+      { label: "Zieltemperatur 2", temp: 227, note: "bis zum Schluss" }
+    ],
+    development: "21–25%",
+    origin: "Indien", processing: "Monsooned", flavor: ""
+  },
+  {
+    id: "santos",
+    machine: "gene-cafe",
+    name: "Santos Bohnen",
+    idealFor: "Ideal zum Beispiel für Brasilien Catuai & Bourbon Santos, Bio Brasilien natural Santos, Bio Brasilien Red Bourbon",
+    amount: 230,
+    preheat: 175,
+    steps: [
+      { label: "Zieltemperatur 1", temp: 243, note: "bis zum ersten Knacken", isCrack: true },
+      { label: "Zieltemperatur 2", temp: 233, note: "bis zum Schluss" }
+    ],
+    development: "20%",
+    origin: "Brasilien", processing: "", flavor: ""
+  },
+  {
+    id: "afrika-gewaschen",
+    machine: "gene-cafe",
+    name: "Gewaschene Hochlandbohnen aus Afrika",
+    idealFor: "Ideal zum Beispiel für Bio Äthiopien Sidamo, Washed Yirgacheffe, Kenia washed SL-28",
+    amount: 250,
+    preheat: 200,
+    steps: [
+      { label: "Zieltemperatur 1", temp: 150, note: "6 Minuten" },
+      { label: "Zieltemperatur 2", temp: 245, note: "bis First Crack", isCrack: true },
+      { label: "Zieltemperatur 3", temp: 225, note: "bis zum Schluss" }
+    ],
+    development: "16–20%",
+    origin: "Äthiopien / Kenia", processing: "gewaschen", flavor: ""
+  },
+  {
+    id: "natural-anaerobic",
+    machine: "gene-cafe",
+    name: "Natural & Anaerobic Hochlandbohnen",
+    idealFor: "Ideal zum Beispiel für Äthiopien natural Yirgacheffe, Guatemala anaerobic",
+    amount: 250,
+    preheat: 200,
+    steps: [
+      { label: "Zieltemperatur 1", temp: 150, note: "6 Minuten" },
+      { label: "Zieltemperatur 2", temp: 240, note: "bis First Crack", isCrack: true },
+      { label: "Zieltemperatur 3", temp: 220, note: "bis zum Schluss" }
+    ],
+    development: "16–19%",
+    origin: "Äthiopien / Guatemala", processing: "natural / anaerobic", flavor: ""
+  },
+  {
+    id: "shb-mittelamerika",
+    machine: "gene-cafe",
+    name: "SHB Bohnen aus Süd- & Mittelamerika",
+    idealFor: "Ideal zum Beispiel für Bio Guatemala Delicia SHB, Bio Honduras Copán, Mexico Chiapas SHG",
+    amount: 250,
+    preheat: 180,
+    steps: [
+      { label: "Zieltemperatur 1", temp: 245, note: "bis zum ersten Knacken +45 Sekunden", isCrack: true },
+      { label: "Zieltemperatur 2", temp: 225, note: "bis zum Schluss" }
+    ],
+    development: "19%",
+    origin: "Guatemala / Honduras / Mexiko", processing: "", flavor: ""
+  },
+  {
+    id: "aillio-cafe-creme-ausgewogen",
+    machine: "aillio-bullet",
+    name: "Café Crème „ausgewogen“",
+    idealFor: "Anwendungen: Café Crème, Vollautomat, French Press, Cappuccino",
+    amount: 1000,
+    preheat: 300,
+    startSettings: "P9 · F3 · D9",
+    steps: [
+      { label: "Ziel 1", temp: 162, tempBT: 152, power: 9, fan: 4, drum: 9 },
+      { label: "Ziel 2", temp: 199, tempBT: 199, power: 7, fan: 5, drum: 9 },
+      { label: "Ziel 3", temp: 205, tempBT: 207, power: 7, fan: 6, drum: 9 },
+      { label: "Ziel 4", temp: 208, tempBT: 212, power: 5, fan: 6, drum: 9, note: "Röstende empfohlen: 214°C IBTS, 220°C BT" }
+    ],
+    development: "19%",
+    origin: "", processing: "", flavor: "Vollmundig, ausgewogen, ausgeprägte Süsse, leichte Säure"
+  },
+  {
+    id: "aillio-vielseitig",
+    machine: "aillio-bullet",
+    name: "Bullet Profil „vielseitig“",
+    idealFor: "Anwendungen: Café Crème, Filter (z.B. V60), French Press, Aeropress, Bialetti",
+    amount: 900,
+    preheat: 300,
+    startSettings: "P9 · F3 · D9",
+    steps: [
+      { label: "Ziel 1", temp: 173, tempBT: 160, power: 9, fan: 4, drum: 9 },
+      { label: "Ziel 2", temp: 200, tempBT: 193, power: 3, fan: 4, drum: 9 },
+      { label: "Ziel 3", temp: 204, tempBT: 206, power: 3, fan: 5, drum: 9, note: "Röstende empfohlen: 207°C IBTS, 210°C BT" }
+    ],
+    development: "17%",
+    origin: "", processing: "", flavor: "Mild und ausgewogen und doch etwas Komplexität, leichte Süsse, leichte Säure"
+  },
+  {
+    id: "aillio-robusta",
+    machine: "aillio-bullet",
+    name: "Robusta / Canephora",
+    idealFor: "Anwendungen: Espresso, Café Crème, Bialetti",
+    amount: 600,
+    preheat: 280,
+    startSettings: "P9 · F3 · D9",
+    steps: [
+      { label: "Ziel 1", temp: 158, tempBT: 140, power: 9, fan: 4, drum: 9 },
+      { label: "Ziel 2", temp: 184, tempBT: 170, power: 8, fan: 4, drum: 9 },
+      { label: "Ziel 3", temp: 193, tempBT: 183, power: 7, fan: 4, drum: 9 },
+      { label: "Ziel 4", temp: 198, tempBT: 190, power: 6, fan: 4, drum: 9 },
+      { label: "Ziel 5", temp: 203, tempBT: 197, power: 4, fan: 6, drum: 9 },
+      { label: "Ziel 6", temp: 210, tempBT: 208, power: 2, fan: 8, drum: 9, note: "Röstende empfohlen: 217°C IBTS, 220°C BT" }
+    ],
+    development: "21%",
+    origin: "", processing: "Robusta / Canephora", flavor: "Vollmundig, keine Säure, leichte Süsse, nussig"
+  },
+  {
+    id: "aillio-espresso-suess",
+    machine: "aillio-bullet",
+    name: "Espresso „süss“",
+    idealFor: "Anwendungen: Espresso, Café Crème, Vollautomat, French Press, Cappuccino, Flat White",
+    amount: 1000,
+    preheat: 300,
+    startSettings: "P9 · F3 · D9",
+    steps: [
+      { label: "Ziel 1", temp: 165, tempBT: 160, power: 9, fan: 4, drum: 9 },
+      { label: "Ziel 2", temp: 183, tempBT: 180, power: 7, fan: 4, drum: 9 },
+      { label: "Ziel 3", temp: 200, tempBT: 201, power: 5, fan: 5, drum: 9, note: "Röstende empfohlen: 217°C IBTS, 211°C BT" }
+    ],
+    development: "17%",
+    origin: "", processing: "", flavor: "Vollmundig, ausgewogen, ausgeprägte Süsse, leichte Säure"
+  },
+  {
+    id: "aillio-espresso-classic-dark",
+    machine: "aillio-bullet",
+    name: "Espresso „classic dark“",
+    idealFor: "Anwendungen: Espresso, Bialetti, Cappuccino, Flat White",
+    amount: 600,
+    preheat: 280,
+    startSettings: "P7 · F2 · D9",
+    steps: [
+      { label: "Ziel 1", temp: 97, tempBT: 92, power: 8, fan: 2, drum: 9 },
+      { label: "Ziel 2", temp: 173, tempBT: 155, power: 7, fan: 2, drum: 9 },
+      { label: "Ziel 3", temp: 200, tempBT: 185, power: 5, fan: 4, drum: 9 },
+      { label: "Ziel 4", temp: 208, tempBT: 195, power: 4, fan: 4, drum: 9 },
+      { label: "Ziel 5", temp: 215, tempBT: 204, power: 3, fan: 4, drum: 9, note: "Röstende empfohlen: 218°C IBTS, 209°C BT" }
+    ],
+    development: "23%",
+    origin: "", processing: "", flavor: "Rund, ausgewogen, leichte Süsse, kaum Säure, leichte Röstaromen"
+  },
+  {
+    id: "aillio-filter-third-wave",
+    machine: "aillio-bullet",
+    name: "Filterkaffee „third wave“",
+    idealFor: "Anwendungen: Filter (z.B. V60, Chemex), Aeropress oder Cold Brew",
+    amount: 600,
+    preheat: 280,
+    startSettings: "P9 · F3 · D9",
+    steps: [
+      { label: "Ziel 1", temp: 177, tempBT: 160, power: 9, fan: 4, drum: 9 },
+      { label: "Ziel 2", temp: 183, tempBT: 167, power: 5, fan: 4, drum: 9 },
+      { label: "Ziel 3", temp: 198, tempBT: 190, power: 3, fan: 6, drum: 9 },
+      { label: "Ziel 4", temp: 202, tempBT: 195, power: 1, fan: 6, drum: 9 },
+      { label: "Ziel 5", temp: 205, tempBT: 200, power: 1, fan: 8, drum: 9, note: "Röstende empfohlen: 206°C IBTS, 203°C BT" }
+    ],
+    development: "9%",
+    origin: "", processing: "", flavor: "Ausgeprägte Säure und Komplexität, süss und fruchtig"
+  }
+];
+
+/* ============================================================
+   ANZEIGE-LOGIK
+   ============================================================ */
+const select = document.getElementById('coffeeSelect');
+const machineSelect = document.getElementById('machineSelect');
+const output = document.getElementById('output');
+
+/* Selbst angelegte Rezepte werden separat im Browser gespeichert
+   (nicht im COFFEES-Array oben), damit sie ein Update dieser Datei
+   überstehen, ohne dass man sie neu eintippen muss. */
+function loadCustomCoffees(){
+  try{ return JSON.parse(localStorage.getItem('customCoffees') || '[]'); }
+  catch(e){ return []; }
+}
+function saveCustomCoffees(){
+  try{ localStorage.setItem('customCoffees', JSON.stringify(CUSTOM_COFFEES)); }
+  catch(e){}
+}
+let CUSTOM_COFFEES = loadCustomCoffees();
+
+function getAllCoffees(){ return COFFEES.concat(CUSTOM_COFFEES); }
+function coffeesForMachine(machineId){ return getAllCoffees().filter(c => c.machine === machineId); }
+
+function populateMachineSelect(){
+  machineSelect.innerHTML = '';
+  MACHINES.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.id;
+    opt.textContent = m.name;
+    machineSelect.appendChild(opt);
+  });
+}
+populateMachineSelect();
+
+let savedMachine = 'gene-cafe';
+try{ savedMachine = localStorage.getItem('roast-machine') || 'gene-cafe'; } catch(e){}
+machineSelect.value = savedMachine;
+
+function populateSelect(){
+  const list = coffeesForMachine(machineSelect.value);
+  select.innerHTML = '';
+  list.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.name;
+    select.appendChild(opt);
+  });
+  const addOpt = document.createElement('option');
+  addOpt.value = '__add__';
+  addOpt.textContent = '+ Neues Rezept';
+  select.appendChild(addOpt);
+  return list;
+}
+let coffeeList = populateSelect();
+
+machineSelect.addEventListener('change', () => {
+  try{ localStorage.setItem('roast-machine', machineSelect.value); } catch(e){}
+  coffeeList = populateSelect();
+  if (coffeeList.length > 0){
+    previousCoffeeId = coffeeList[0].id;
+    select.value = coffeeList[0].id;
+    render(coffeeList[0].id);
+  } else {
+    select.value = '__add__';
+    renderAddForm();
+  }
+});
+
+function buildChart(coffee){
+  const w = 680, h = 260;
+  const padL = 44, padR = 20, padT = 24, padB = 34;
+
+  const stages = [{ label: "Aufwärmen", temp: coffee.preheat }]
+    .concat(coffee.steps.map(s => ({ label: s.label.replace('Zieltemperatur', 'Ziel'), temp: s.temp, note: s.note, isCrack: s.isCrack })));
+
+  const temps = stages.map(s => s.temp);
+  const minT = Math.min(...temps) - 15;
+  const maxT = Math.max(...temps) + 15;
+
+  const x = i => padL + (i * (w - padL - padR)) / (stages.length - 1);
+  const y = t => h - padB - ((t - minT) / (maxT - minT)) * (h - padT - padB);
+
+  const points = stages.map((s, i) => [x(i), y(s.temp)]);
+  const pathD = points.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+  const fillD = pathD + ` L ${points[points.length-1][0]} ${h - padB} L ${points[0][0]} ${h - padB} Z`;
+
+  // horizontal grid lines (temp guides)
+  const gridCount = 4;
+  let gridLines = '';
+  for (let g = 0; g <= gridCount; g++){
+    const t = minT + (g * (maxT - minT)) / gridCount;
+    const gy = y(t);
+    gridLines += `<line class="grid-line" x1="${padL}" y1="${gy.toFixed(1)}" x2="${w-padR}" y2="${gy.toFixed(1)}" />`;
+    gridLines += `<text class="axis-label" x="${padL-8}" y="${(gy+3).toFixed(1)}" text-anchor="end">${Math.round(t)}°</text>`;
+  }
+
+  let dots = '';
+  let labels = '';
+  stages.forEach((s, i) => {
+    const [px, py] = points[i];
+    dots += `<circle class="pt${s.isCrack ? ' crack' : ''}" cx="${px}" cy="${py}" r="5" />`;
+    labels += `<text class="pt-temp${s.isCrack ? ' crack' : ''}" x="${px}" y="${py-14}" text-anchor="middle">${s.temp}°</text>`;
+    labels += `<text class="axis-label" x="${px}" y="${h-padB+18}" text-anchor="middle">${s.label}</text>`;
+  });
+
+  return `
+  <svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Temperaturverlauf ${coffee.name}">
+    <defs>
+      <linearGradient id="curveGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#e8ac5c" stop-opacity="0.55"/>
+        <stop offset="100%" stop-color="#e8ac5c" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    ${gridLines}
+    <path class="curve-fill" d="${fillD}" />
+    <path class="curve" d="${pathD}" />
+    ${dots}
+    ${labels}
+  </svg>`;
+}
+
+/* Ergänzt die reine "note" eines Schritts um Zweit-Temperatur (BT) und
+   Power/Fan/Drum-Stufen, wenn vorhanden — Maschinen wie der Aillio
+   Bullet steuern über diese Werte statt über eine einzelne Zieltemp.
+   Baut so einen fertigen Hinweistext, ohne die Tabelle um zusätzliche
+   Spalten zu erweitern (bleibt auf dem iPhone lesbar). */
+function stepDisplayNote(s){
+  const parts = [];
+  if (s.note) parts.push(s.note);
+  if (s.tempBT != null) parts.push('BT ' + s.tempBT + '°C');
+  if (s.power != null) parts.push('P' + s.power);
+  if (s.fan != null) parts.push('F' + s.fan);
+  if (s.drum != null) parts.push('D' + s.drum);
+  return parts.join(' · ');
+}
+
+function buildTable(coffee){
+  const preheatNote = coffee.startSettings ? ('Start-Einstellungen: ' + coffee.startSettings) : 'Röster vorheizen';
+  const rows = [
+    `<tr><td>Aufwärmen</td><td class="temp">${coffee.preheat}°C</td><td>${preheatNote}</td></tr>`
+  ].concat(coffee.steps.map(s =>
+    `<tr class="${s.isCrack ? 'crack-row' : ''}"><td>${s.label}</td><td class="temp">${s.temp}°C</td><td>${stepDisplayNote(s)}</td></tr>`
+  ));
+  return `<table>
+    <thead><tr><th>Etappe</th><th>Temperatur</th><th>Hinweis</th></tr></thead>
+    <tbody>${rows.join('')}</tbody>
+  </table>`;
+}
+
+function extraField(k, v){
+  return `<div><div class="k">${k}</div><div class="v ${v ? '' : 'empty'}">${v || 'noch nicht erfasst'}</div></div>`;
+}
+
+/* ----- Drop-Zeitplaner -----
+   Development Time Ratio (DTR): der Anteil der Gesamtröstzeit, der
+   NACH dem First Crack liegt.
+     DTR = (Drop − FC) / Drop
+   Nach Drop aufgelöst, wenn FC und Ziel-DTR bekannt sind:
+     Drop = FC / (1 − DTR)
+   Das spart während der Röstung das Kopfrechnen: FC-Zeit ablesen,
+   in der Tabelle die passende Zeile suchen, Drop-Zeitpunkt sehen.
+*/
+function defaultDevPercent(c){
+  const nums = (c.development.match(/\d+(\.\d+)?/g) || []).map(Number);
+  if (nums.length === 0) return 20;
+  const avg = nums.reduce((a,b) => a+b, 0) / nums.length;
+  return Math.round(avg * 2) / 2; // auf 0.5er runden
+}
+
+function fmtTime(totalSeconds){
+  const s = Math.round(totalSeconds);
+  const m = Math.floor(s / 60);
+  const rem = s % 60;
+  return m + ':' + String(rem).padStart(2, '0');
+}
+
+// typische First-Crack-Zeiten am Gene Café, 6:00 bis 12:00 in 30s-Schritten
+const FC_TIMES_SEC = [];
+for (let t = 6*60; t <= 12*60; t += 30) FC_TIMES_SEC.push(t);
+
+let lastRecordedFcSec = null;
+
+function renderDropTable(devPercentRaw){
+  const wrap = document.getElementById('dropTableWrap');
+  const dev = parseFloat(devPercentRaw);
+  if (!wrap || isNaN(dev) || dev <= 0 || dev >= 100){
+    if (wrap) wrap.innerHTML = '<p class="dev-hint">Bitte eine Development-% zwischen 1 und 99 eingeben.</p>';
+    return;
+  }
+  const ratio = dev / 100;
+  let nearest = null, nearestDiff = Infinity;
+  if (lastRecordedFcSec !== null){
+    FC_TIMES_SEC.forEach(fcSec => {
+      const diff = Math.abs(fcSec - lastRecordedFcSec);
+      if (diff < nearestDiff){ nearestDiff = diff; nearest = fcSec; }
+    });
+  }
+  const rows = FC_TIMES_SEC.map(fcSec => {
+    const dropSec = fcSec / (1 - ratio);
+    const devSec = dropSec - fcSec;
+    const hl = fcSec === nearest ? ' hl-row' : '';
+    return `<tr class="fc-row${hl}"><td>${fmtTime(fcSec)}</td><td class="temp">${fmtTime(devSec)}</td><td class="temp">${fmtTime(dropSec)}</td></tr>`;
+  }).join('');
+
+  wrap.innerHTML = `<table>
+    <thead><tr><th>First Crack</th><th>Development-Dauer</th><th>Drop-Zeit / Gesamtröstzeit</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+/* ----- DTR Schnellwahl ----- */
+const DEV_QUICK_VALUES = [16, 18, 20, 22, 24, 26];
+
+function renderDevQuick(activeValue){
+  const wrap = document.getElementById('devQuick');
+  if (!wrap) return;
+  wrap.innerHTML = DEV_QUICK_VALUES.map(v =>
+    `<button type="button" class="chip${v === activeValue ? ' active' : ''}" data-dev="${v}">${v}%</button>`
+  ).join('');
+  wrap.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const devInput = document.getElementById('devInput');
+      devInput.value = chip.dataset.dev;
+      renderDropTable(devInput.value);
+      renderDevQuick(Number(chip.dataset.dev));
+    });
+  });
+}
+
+/* ----- Röst-Timer -----
+   Läuft rein im Browser (kein Server nötig). "First Crack jetzt"
+   merkt sich die verstrichene Zeit und markiert automatisch die
+   passende Zeile im Drop-Zeitplaner, statt dass du selbst suchst.
+*/
+const timerState = { running: false, elapsed: 0, startedAt: 0, fcSec: null, dropSec: null, intervalId: null };
+let phaseIndex = 0;
+let currentPhases = [];
+let phaseStartElapsed = 0;
+
+// erkennt Zeitangaben wie "6 Minuten" oder "1 Minute halten" im Notiztext
+// einer Phase, damit der Tracker selbst weiterschaltet, ohne dass man
+// die Zeit im Kopf mitzählen muss.
+function parseDurationSec(note){
+  if (!note) return null;
+  const m = note.match(/(\d+)\s*Minute/);
+  return m ? Number(m[1]) * 60 : null;
+}
+
+function updateDropCalc(){
+  const calc = document.getElementById('dropCalc');
+  if (!calc) return;
+  const devInput = document.getElementById('devInput');
+  const dev = devInput ? parseFloat(devInput.value) : NaN;
+
+  if (timerState.fcSec === null || isNaN(dev) || dev <= 0 || dev >= 100){
+    calc.textContent = 'Drop-Ziel: –';
+    calc.classList.remove('due');
+    return;
+  }
+  const ratio = dev / 100;
+  const dropTarget = timerState.fcSec / (1 - ratio);
+  const liveElapsed = timerState.running
+    ? timerState.elapsed + (performance.now() - timerState.startedAt) / 1000
+    : timerState.elapsed;
+  const remaining = dropTarget - liveElapsed;
+
+  if (remaining <= 0){
+    calc.innerHTML = `Drop-Ziel: <span class="num">${fmtTime(dropTarget)}</span> · Drop-Zeitpunkt erreicht!`;
+    calc.classList.add('due');
+  } else {
+    calc.innerHTML = `Drop-Ziel: <span class="num">${fmtTime(dropTarget)}</span> · noch <span class="num">${fmtTime(remaining)}</span>`;
+    calc.classList.remove('due');
+  }
+}
+
+function timerTick(){
+  const now = performance.now();
+  const liveElapsed = timerState.elapsed + (now - timerState.startedAt) / 1000;
+  document.getElementById('timerDisplay').textContent = fmtTime(liveElapsed);
+  updateDropCalc();
+
+  const active = currentPhases[phaseIndex];
+  if (active && active.durationSec !== null && phaseIndex < currentPhases.length - 1
+      && (liveElapsed - phaseStartElapsed) >= active.durationSec){
+    setPhase(phaseIndex + 1, phaseStartElapsed + active.durationSec);
+  } else if (active && active.durationSec !== null){
+    const remaining = active.durationSec - (liveElapsed - phaseStartElapsed);
+    const cd = document.getElementById('phaseCountdown');
+    if (cd) cd.textContent = 'noch ' + fmtTime(Math.max(0, remaining)) + ' in dieser Phase';
+  }
+}
+
+function renderPhaseTracker(coffee){
+  const preheatNote = coffee.startSettings ? ('Start-Einstellungen: ' + coffee.startSettings) : 'Röster vorheizen';
+  currentPhases = [{ label: 'Aufwärmen', temp: coffee.preheat, note: preheatNote, durationSec: null }]
+    .concat(coffee.steps.map(s => ({
+      label: s.label, temp: s.temp, note: stepDisplayNote(s), isCrack: !!s.isCrack,
+      durationSec: parseDurationSec(s.note)
+    })));
+  phaseIndex = 0;
+  phaseStartElapsed = 0;
+  updatePhaseDisplay();
+}
+
+function setPhase(idx, elapsedAtChange){
+  if (idx < 0 || idx >= currentPhases.length) return;
+  phaseIndex = idx;
+  phaseStartElapsed = elapsedAtChange;
+  updatePhaseDisplay();
+}
+
+function updatePhaseDisplay(){
+  const p = currentPhases[phaseIndex];
+  if (!p) return;
+  document.getElementById('phaseLabel').textContent = `Phase ${phaseIndex + 1}/${currentPhases.length} · ${p.label}`;
+  document.getElementById('phaseTemp').textContent = p.temp + '°C';
+  document.getElementById('phaseNote').textContent = p.note || '';
+  document.getElementById('phaseCountdown').textContent = '';
+  document.getElementById('phasePrevBtn').disabled = phaseIndex === 0;
+  document.getElementById('phaseNextBtn').disabled = phaseIndex === currentPhases.length - 1;
+}
+
+function resetTimerUI(){
+  timerState.running = false;
+  timerState.elapsed = 0;
+  timerState.fcSec = null;
+  timerState.dropSec = null;
+  if (timerState.intervalId) clearInterval(timerState.intervalId);
+  timerState.intervalId = null;
+  lastRecordedFcSec = null;
+  phaseIndex = 0;
+  phaseStartElapsed = 0;
+  updatePhaseDisplay();
+  const disp = document.getElementById('timerDisplay');
+  const mark = document.getElementById('timerFcMark');
+  const startBtn = document.getElementById('timerStartBtn');
+  const fcBtn = document.getElementById('timerFcBtn');
+  const dropBtn = document.getElementById('timerDropBtn');
+  if (disp) disp.textContent = '0:00';
+  if (mark) mark.textContent = 'First Crack noch nicht markiert';
+  if (startBtn) startBtn.textContent = 'Start';
+  if (fcBtn) fcBtn.disabled = true;
+  if (dropBtn) dropBtn.disabled = true;
+  updateDropCalc();
+  const devInput = document.getElementById('devInput');
+  if (devInput) renderDropTable(devInput.value);
+}
+
+function wireTimer(coffee){
+  const startBtn = document.getElementById('timerStartBtn');
+  const fcBtn = document.getElementById('timerFcBtn');
+  const dropBtn = document.getElementById('timerDropBtn');
+  const resetBtn = document.getElementById('timerResetBtn');
+  const prevBtn = document.getElementById('phasePrevBtn');
+  const nextBtn = document.getElementById('phaseNextBtn');
+  if (!startBtn) return;
+
+  startBtn.addEventListener('click', () => {
+    if (!timerState.running){
+      const isFirstStart = startBtn.textContent === 'Start';
+      timerState.running = true;
+      timerState.startedAt = performance.now();
+      timerState.intervalId = setInterval(timerTick, 200);
+      startBtn.textContent = 'Pause';
+      fcBtn.disabled = timerState.fcSec !== null;
+      if (isFirstStart && currentPhases.length > 1){
+        setPhase(1, 0);
+      }
+    } else {
+      timerState.elapsed += (performance.now() - timerState.startedAt) / 1000;
+      clearInterval(timerState.intervalId);
+      timerState.running = false;
+      startBtn.textContent = 'Weiter';
+    }
+  });
+
+  fcBtn.addEventListener('click', () => {
+    const liveElapsed = timerState.running
+      ? timerState.elapsed + (performance.now() - timerState.startedAt) / 1000
+      : timerState.elapsed;
+    timerState.fcSec = liveElapsed;
+    lastRecordedFcSec = liveElapsed;
+    document.getElementById('timerFcMark').textContent = 'First Crack markiert bei ' + fmtTime(liveElapsed);
+    fcBtn.disabled = true;
+    dropBtn.disabled = false;
+    const devInput = document.getElementById('devInput');
+    if (devInput) renderDropTable(devInput.value);
+    updateDropCalc();
+
+    const crackIdx = currentPhases.findIndex(p => p.isCrack);
+    const nextIdx = crackIdx >= 0 ? crackIdx + 1 : phaseIndex + 1;
+    if (nextIdx < currentPhases.length) setPhase(nextIdx, liveElapsed);
+  });
+
+  dropBtn.addEventListener('click', () => {
+    const liveElapsed = timerState.running
+      ? timerState.elapsed + (performance.now() - timerState.startedAt) / 1000
+      : timerState.elapsed;
+    timerState.dropSec = liveElapsed;
+    if (timerState.running){
+      timerState.elapsed = liveElapsed;
+      clearInterval(timerState.intervalId);
+      timerState.running = false;
+      startBtn.textContent = 'Weiter';
+    }
+    dropBtn.disabled = true;
+    prefillLogFromRoast(coffee);
+  });
+
+  resetBtn.addEventListener('click', resetTimerUI);
+  prevBtn.addEventListener('click', () => {
+    if (phaseIndex > 0){
+      const liveElapsed = timerState.running
+        ? timerState.elapsed + (performance.now() - timerState.startedAt) / 1000
+        : timerState.elapsed;
+      setPhase(phaseIndex - 1, liveElapsed);
+    }
+  });
+  nextBtn.addEventListener('click', () => {
+    if (phaseIndex < currentPhases.length - 1){
+      const liveElapsed = timerState.running
+        ? timerState.elapsed + (performance.now() - timerState.startedAt) / 1000
+        : timerState.elapsed;
+      setPhase(phaseIndex + 1, liveElapsed);
+    }
+  });
+}
+
+function prefillLogFromRoast(coffee){
+  const logFc = document.getElementById('logFc');
+  const logDrop = document.getElementById('logDrop');
+  const logNote = document.getElementById('logNote');
+  if (!logFc || !logDrop || !logNote) return;
+
+  logFc.value = fmtTime(timerState.fcSec);
+  logDrop.value = fmtTime(timerState.dropSec);
+
+  const devInput = document.getElementById('devInput');
+  const targetDev = devInput ? parseFloat(devInput.value) : NaN;
+  const actualDev = timerState.dropSec > 0
+    ? ((timerState.dropSec - timerState.fcSec) / timerState.dropSec) * 100
+    : NaN;
+
+  let summary = `Ziel-Development ${isNaN(targetDev) ? '–' : targetDev}% · Ist-Development ${isNaN(actualDev) ? '–' : actualDev.toFixed(1) + '%'}`;
+  logNote.value = summary + ' — ';
+  logNote.focus();
+  logNote.setSelectionRange(logNote.value.length, logNote.value.length);
+  logNote.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+/* ----- Röst-Log (localStorage, pro Kaffee) -----
+   Rein lokal im Browser gespeichert — keine eigene Backend-Logik
+   nötig. Läuft nur zuverlässig, wenn die Seite über http(s)
+   gehostet ist (nicht bei jedem Öffnen einer lokalen Datei).
+*/
+function storageAvailable(){
+  try{
+    const k = '__test__';
+    localStorage.setItem(k, '1');
+    localStorage.removeItem(k);
+    return true;
+  } catch(e){ return false; }
+}
+
+function logKey(coffeeId){ return 'roastlog:' + coffeeId; }
+
+function loadLog(coffeeId){
+  if (!storageAvailable()) return [];
+  try{ return JSON.parse(localStorage.getItem(logKey(coffeeId)) || '[]'); }
+  catch(e){ return []; }
+}
+
+function saveLog(coffeeId, entries){
+  if (!storageAvailable()) return;
+  localStorage.setItem(logKey(coffeeId), JSON.stringify(entries));
+}
+
+function renderLog(coffee){
+  const wrap = document.getElementById('logWrap');
+  if (!wrap) return;
+
+  if (!storageAvailable()){
+    wrap.innerHTML = '<p class="log-empty">Log ist in diesem Browser nicht verfügbar (z. B. privates Fenster).</p>';
+    return;
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+  wrap.innerHTML = `
+    <div class="log-form">
+      <input type="date" id="logDate" value="${today}">
+      <input type="text" id="logFc" class="short" placeholder="FC z.B. 8:30">
+      <input type="text" id="logDrop" class="short" placeholder="Drop z.B. 10:15">
+      <textarea id="logNote" placeholder="Notiz zu dieser Röstung …"></textarea>
+      <button class="btn primary" id="logSaveBtn" type="button">Röstung speichern</button>
+    </div>
+    <div id="logEntries"></div>
+  `;
+
+  document.getElementById('logSaveBtn').addEventListener('click', () => {
+    const entries = loadLog(coffee.id);
+    entries.unshift({
+      date: document.getElementById('logDate').value || today,
+      fc: document.getElementById('logFc').value.trim(),
+      drop: document.getElementById('logDrop').value.trim(),
+      note: document.getElementById('logNote').value.trim()
+    });
+    saveLog(coffee.id, entries);
+    renderLog(coffee);
+  });
+
+  const entries = loadLog(coffee.id);
+  const entriesWrap = document.getElementById('logEntries');
+  if (entries.length === 0){
+    entriesWrap.innerHTML = '<p class="log-empty">Noch keine Röstungen protokolliert.</p>';
+    return;
+  }
+  entriesWrap.innerHTML = entries.map((e, i) => `
+    <div class="log-entry">
+      <div class="meta">${e.date}${e.fc ? ' · FC ' + e.fc : ''}${e.drop ? ' · Drop ' + e.drop : ''}</div>
+      <div class="note">${e.note || ''}</div>
+      <button type="button" data-idx="${i}" aria-label="Eintrag löschen">✕</button>
+    </div>
+  `).join('');
+  entriesWrap.querySelectorAll('button[data-idx]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = Number(btn.dataset.idx);
+      const list = loadLog(coffee.id);
+      list.splice(idx, 1);
+      saveLog(coffee.id, list);
+      renderLog(coffee);
+    });
+  });
+}
+
+function render(id){
+  const c = getAllCoffees().find(x => x.id === id);
+  if (!c) return;
+
+  output.innerHTML = `
+    <div class="card">
+      <h2>${c.name}</h2>
+      <p class="ideal">${c.idealFor}</p>
+      <div class="stat-row">
+        <div class="stat"><div class="k">Bohnenmenge</div><div class="v">${c.amount} g</div></div>
+        <div class="stat">
+          <div class="k">Ziel-Development</div>
+          <div class="dev-input-wrap">
+            <input type="number" id="devInput" class="dev-input" step="0.5" min="1" max="60" value="${defaultDevPercent(c)}">
+            <span class="dev-suffix">%</span>
+          </div>
+          <div class="dev-hint">Quelle nennt ${c.development}</div>
+          <div class="dev-quick" id="devQuick"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="chart-title" style="text-align:center;">Röst-Timer</p>
+      <div class="timer-display" id="timerDisplay">0:00</div>
+      <div class="timer-fc-mark" id="timerFcMark">First Crack noch nicht markiert</div>
+      <div class="drop-calc" id="dropCalc">Drop-Ziel: –</div>
+      <div class="timer-btns">
+        <button class="btn primary" id="timerStartBtn">Start</button>
+        <button class="btn crack" id="timerFcBtn" disabled>First Crack jetzt</button>
+        <button class="btn drop" id="timerDropBtn" disabled>Drop jetzt</button>
+        <button class="btn ghost" id="timerResetBtn">Reset</button>
+      </div>
+      <div class="phase-tracker">
+        <button type="button" class="phase-btn" id="phasePrevBtn" aria-label="Vorherige Phase">‹</button>
+        <div class="phase-info">
+          <div class="phase-label" id="phaseLabel">Phase</div>
+          <div class="phase-temp" id="phaseTemp">–</div>
+          <div class="phase-note" id="phaseNote"></div>
+          <div class="phase-note" id="phaseCountdown"></div>
+        </div>
+        <button type="button" class="phase-btn" id="phaseNextBtn" aria-label="Nächste Phase">›</button>
+      </div>
+    </div>
+
+    <div class="card chart-card">
+      <p class="chart-title">Temperaturverlauf</p>
+      ${buildChart(c)}
+    </div>
+
+    <div class="card">
+      <p class="chart-title" style="margin-bottom:14px;">Röstrezept</p>
+      ${buildTable(c)}
+    </div>
+
+    <div class="card">
+      <p class="chart-title" style="margin-bottom:4px;">Drop-Zeitplaner</p>
+      <div class="dev-hint" style="margin-bottom:14px;">Je nachdem, wann dein First Crack einsetzt: bei diesem Ziel-Development droppst du hier.</div>
+      <div id="dropTableWrap"></div>
+    </div>
+
+    <div class="card">
+      <p class="chart-title" style="margin-bottom:4px;">Röst-Log</p>
+      <div class="dev-hint" style="margin-bottom:14px;">Deine bisherigen Durchgänge mit diesem Kaffee — nur lokal auf diesem Gerät gespeichert.</div>
+      <div id="logWrap"></div>
+    </div>
+
+    <div class="card">
+      <p class="chart-title" style="margin-bottom:14px;">Zusatzinfos</p>
+      <div class="extra">
+        ${extraField('Herkunft', c.origin)}
+        ${extraField('Verarbeitung', c.processing)}
+        ${extraField('Aromen', c.flavor)}
+      </div>
+      ${c.isCustom ? '<button type="button" class="btn ghost" id="deleteCustomBtn" style="margin-top:16px;">Eigenes Rezept löschen</button>' : ''}
+    </div>
+  `;
+
+  if (c.isCustom){
+    document.getElementById('deleteCustomBtn').addEventListener('click', () => {
+      if (!confirm(`"${c.name}" wirklich löschen?`)) return;
+      CUSTOM_COFFEES = CUSTOM_COFFEES.filter(x => x.id !== c.id);
+      saveCustomCoffees();
+      coffeeList = populateSelect();
+      if (coffeeList.length > 0){
+        select.value = coffeeList[0].id;
+        previousCoffeeId = coffeeList[0].id;
+        render(coffeeList[0].id);
+      } else {
+        select.value = '__add__';
+        renderAddForm();
+      }
+    });
+  }
+
+  const devInput = document.getElementById('devInput');
+  lastRecordedFcSec = null;
+  renderDropTable(devInput.value);
+  renderDevQuick(Number(devInput.value));
+  devInput.addEventListener('input', () => {
+    renderDropTable(devInput.value);
+    renderDevQuick(Number(devInput.value));
+    updateDropCalc();
+  });
+
+  renderPhaseTracker(c);
+  resetTimerUI();
+  wireTimer(c);
+  renderLog(c);
+}
+
+select.addEventListener('change', e => {
+  if (e.target.value === '__add__'){
+    renderAddForm();
+  } else {
+    previousCoffeeId = e.target.value;
+    render(e.target.value);
+  }
+});
+
+let previousCoffeeId = coffeeList.length > 0 ? coffeeList[0].id : null;
+if (previousCoffeeId){
+  render(previousCoffeeId);
+} else {
+  select.value = '__add__';
+  renderAddForm();
+}
+
+/* ----- Neues Rezept anlegen -----
+   Wird nicht ins COFFEES-Array geschrieben (das ist Code, kein
+   Nutzer-Input), sondern separat in CUSTOM_COFFEES / localStorage
+   gehalten — so bleibt die Datenquelle im Code sauber, und eigene
+   Rezepte überleben ein Update dieser Datei.
+*/
+function escapeHtml(str){
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function slugify(str){
+  return String(str).toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'kaffee';
+}
+
+let draftSteps = [];
+
+function newStepRow(){ return { label: '', temp: '', note: '', isCrack: false }; }
+
+function renderStepsEditor(){
+  const wrap = document.getElementById('stepsEditor');
+  if (!wrap) return;
+  wrap.innerHTML = draftSteps.map((s, i) => `
+    <div class="step-row" data-idx="${i}">
+      <input type="text" class="step-label" placeholder="Bezeichnung (z.B. Zieltemperatur 1)" value="${escapeHtml(s.label)}" data-field="label">
+      <input type="number" placeholder="°C" value="${s.temp}" data-field="temp">
+      <input type="text" class="step-note" placeholder="Hinweis (z.B. bis First Crack)" value="${escapeHtml(s.note)}" data-field="note">
+      <label class="crack-check"><input type="checkbox" data-field="isCrack" ${s.isCrack ? 'checked' : ''}> Crack-Punkt</label>
+      <button type="button" class="step-remove" data-remove="${i}" aria-label="Schritt entfernen">✕</button>
+    </div>
+  `).join('');
+
+  wrap.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('input', e => {
+      const idx = Number(e.target.closest('.step-row').dataset.idx);
+      const field = e.target.dataset.field;
+      draftSteps[idx][field] = field === 'isCrack' ? e.target.checked : e.target.value;
+    });
+  });
+  wrap.querySelectorAll('[data-remove]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (draftSteps.length <= 1) return;
+      draftSteps.splice(Number(btn.dataset.remove), 1);
+      renderStepsEditor();
+    });
+  });
+}
+
+function renderAddForm(){
+  draftSteps = [newStepRow()];
+
+  output.innerHTML = `
+    <div class="card">
+      <h2>Neues Röstprofil</h2>
+      <p class="ideal">Trag hier einen eigenen Kaffee samt Röstrezept ein — erscheint danach im Dropdown.</p>
+      <div class="form-grid">
+        <label>Röstmaschine
+          <select id="newMachine">
+            ${MACHINES.map(m => `<option value="${m.id}" ${m.id === machineSelect.value ? 'selected' : ''}>${m.name}</option>`).join('')}
+          </select>
+        </label>
+        <label>Name<input type="text" id="newName" placeholder="z.B. Mein Costa Rica"></label>
+        <label>Ideal für / Beispielbohnen<input type="text" id="newIdeal" placeholder="z.B. Costa Rica Tarrazú"></label>
+        <label>Bohnenmenge (g)<input type="number" id="newAmount" placeholder="230"></label>
+        <label>Aufwärmen (°C)<input type="number" id="newPreheat" placeholder="200"></label>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="chart-title" style="margin-bottom:14px;">Röst-Schritte</p>
+      <div id="stepsEditor"></div>
+      <button type="button" class="btn ghost" id="addStepBtn">+ Schritt hinzufügen</button>
+    </div>
+
+    <div class="card">
+      <div class="form-grid">
+        <label>Development % (Ziel)<input type="text" id="newDev" placeholder="z.B. 20% oder 16-20%"></label>
+        <label>Herkunft<input type="text" id="newOrigin"></label>
+        <label>Verarbeitung<input type="text" id="newProcessing"></label>
+        <label>Aromen<input type="text" id="newFlavor"></label>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn primary" id="saveNewBtn">Rezept speichern</button>
+        <button type="button" class="btn ghost" id="cancelNewBtn">Abbrechen</button>
+      </div>
+    </div>
+  `;
+
+  renderStepsEditor();
+  document.getElementById('addStepBtn').addEventListener('click', () => {
+    draftSteps.push(newStepRow());
+    renderStepsEditor();
+  });
+  document.getElementById('cancelNewBtn').addEventListener('click', () => {
+    const list = coffeesForMachine(machineSelect.value);
+    if (list.length > 0){
+      const target = list.find(c => c.id === previousCoffeeId) ? previousCoffeeId : list[0].id;
+      select.value = target;
+      previousCoffeeId = target;
+      render(target);
+    } else {
+      renderAddForm();
+    }
+  });
+  document.getElementById('saveNewBtn').addEventListener('click', saveNewCoffee);
+}
+
+function saveNewCoffee(){
+  const name = document.getElementById('newName').value.trim();
+  if (!name){ alert('Bitte einen Namen eingeben.'); return; }
+
+  const validSteps = draftSteps.filter(s => s.temp !== '' && !isNaN(parseFloat(s.temp)));
+  if (validSteps.length === 0){ alert('Bitte mindestens einen Röstschritt mit Temperatur eingeben.'); return; }
+
+  const existingIds = getAllCoffees().map(c => c.id);
+  const baseId = slugify(name);
+  let id = baseId, n = 2;
+  while (existingIds.includes(id)){ id = baseId + '-' + n; n++; }
+
+  const coffee = {
+    id,
+    machine: document.getElementById('newMachine').value,
+    name,
+    idealFor: document.getElementById('newIdeal').value.trim(),
+    amount: Number(document.getElementById('newAmount').value) || 0,
+    preheat: Number(document.getElementById('newPreheat').value) || 0,
+    steps: validSteps.map((s, i) => ({
+      label: s.label.trim() || ('Zieltemperatur ' + (i + 1)),
+      temp: Math.round(parseFloat(s.temp)),
+      note: s.note.trim(),
+      isCrack: !!s.isCrack
+    })),
+    development: document.getElementById('newDev').value.trim() || '20%',
+    origin: document.getElementById('newOrigin').value.trim(),
+    processing: document.getElementById('newProcessing').value.trim(),
+    flavor: document.getElementById('newFlavor').value.trim(),
+    isCustom: true
+  };
+
+  CUSTOM_COFFEES.push(coffee);
+  saveCustomCoffees();
+
+  if (coffee.machine !== machineSelect.value){
+    machineSelect.value = coffee.machine;
+    try{ localStorage.setItem('roast-machine', coffee.machine); } catch(e){}
+  }
+  coffeeList = populateSelect();
+  select.value = coffee.id;
+  previousCoffeeId = coffee.id;
+  render(coffee.id);
+}
+
+document.getElementById('printBtn').addEventListener('click', () => window.print());
+
+/* ----- PWA: Service Worker -----
+   Nur registrieren, wenn die Seite über http(s) läuft (nicht bei
+   lokalem Doppelklick auf die Datei) — sonst bricht die Registrierung
+   ohnehin ab. sw.js muss im selben Ordner liegen wie diese Datei.
+*/
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
